@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0D1F3C" />
+  <title>ASPT Student Check-In</title>
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Signature Pad -->
+  <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.1.7/dist/signature_pad.umd.min.js"></script>
+
+  <!-- Google Fonts: Barlow Condensed + Barlow -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy:   '#0D1F3C',
+            red:    '#C8102E',
+            orange: '#F47920',
+            slate:  '#F4F6FA',
+          },
+          fontFamily: {
+            condensed: ['"Barlow Condensed"', 'sans-serif'],
+            body:      ['Barlow', 'sans-serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    /* ── Base ── */
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-tap-highlight-color: transparent; }
+    body { font-family: 'Barlow', sans-serif; background: #F4F6FA; }
+
+    /* ── Page-load stagger animations ── */
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(18px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .anim { opacity: 0; animation: slideUp 0.45s ease forwards; }
+    .anim-1 { animation-delay: 0.05s; }
+    .anim-2 { animation-delay: 0.15s; }
+    .anim-3 { animation-delay: 0.25s; }
+    .anim-4 { animation-delay: 0.35s; }
+    .anim-5 { animation-delay: 0.45s; }
+
+    /* ── Inputs ── */
+    .field {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid #D1D9E6;
+      border-radius: 8px;
+      font-family: 'Barlow', sans-serif;
+      font-size: 16px; /* prevents iOS zoom on focus */
+      color: #0D1F3C;
+      background: #fff;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+    .field:focus {
+      border-color: #0D1F3C;
+      box-shadow: 0 0 0 3px rgba(13,31,60,0.08);
+    }
+    .field.error {
+      border-color: #C8102E;
+      box-shadow: 0 0 0 3px rgba(200,16,46,0.08);
+    }
+
+    /* ── Signature canvas wrapper ── */
+    #sig-wrap {
+      position: relative;
+      border: 1.5px solid #D1D9E6;
+      border-radius: 8px;
+      background: #fff;
+      overflow: hidden;
+      transition: border-color 0.2s;
+      touch-action: none;
+    }
+    #sig-wrap.error  { border-color: #C8102E; }
+    #sig-wrap.signed { border-color: #0D1F3C; }
+    #sig-canvas { display: block; width: 100%; height: 130px; cursor: crosshair; }
+
+    /* ── Submit button ── */
+    #submit-btn {
+      width: 100%;
+      padding: 16px;
+      background: #0D1F3C;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      -webkit-appearance: none;
+    }
+    #submit-btn:active { transform: scale(0.98); }
+    #submit-btn:disabled { background: #889; cursor: not-allowed; transform: none; }
+    #submit-btn.loading { background: #445; }
+
+    /* ── Success screen ── */
+    @keyframes popIn {
+      0%   { transform: scale(0.5); opacity: 0; }
+      70%  { transform: scale(1.08); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .check-circle { animation: popIn 0.5s cubic-bezier(.36,.07,.19,.97) forwards; }
+
+    /* ── Label ── */
+    .field-label {
+      display: block;
+      font-family: 'Barlow Condensed', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      color: #6B7A99;
+      margin-bottom: 5px;
+    }
+
+    /* ── Waiver scroll box ── */
+    #waiver-text {
+      max-height: 140px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen bg-slate">
+
+  <!-- ═══════════════════════════════════════════════════════════ FORM VIEW -->
+  <div id="form-view">
+
+    <!-- Header -->
+    <header class="bg-navy border-b-4 border-red px-5 py-4 anim anim-1">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-red rounded-lg flex items-center justify-center flex-shrink-0">
+          <!-- Shield icon -->
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+            <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+          </svg>
+        </div>
+        <div>
+          <div class="font-condensed text-white font-bold tracking-wide leading-tight" style="font-size:17px">
+            AMERICAN SAFETY PROGRAMS<br>&amp; TRAINING INC.
+          </div>
+          <div class="text-xs mt-0.5" style="color:rgba(255,255,255,0.5)">
+            AHA Authorized Training Center
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Session Banner -->
+    <div id="session-banner" class="bg-white border-b border-slate px-5 py-3 anim anim-2">
+      <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm">
+        <div>
+          <span class="font-condensed text-xs font-bold tracking-widest uppercase" style="color:#889">Course</span><br>
+          <span class="font-semibold text-navy" id="banner-course">—</span>
+        </div>
+        <div>
+          <span class="font-condensed text-xs font-bold tracking-widest uppercase" style="color:#889">Date</span><br>
+          <span class="font-semibold text-navy" id="banner-date">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Body -->
+    <div class="px-4 py-5 max-w-lg mx-auto space-y-4">
+
+      <!-- ── Card: Your Info ────────────────────────────────────────── -->
+      <div class="bg-white rounded-xl border border-slate shadow-sm p-5 anim anim-2">
+        <h2 class="font-condensed text-navy font-bold tracking-wide uppercase mb-4 pb-3 border-b border-slate" style="font-size:16px">
+          Your Information
+        </h2>
+
+        <div class="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label class="field-label" for="first_name">First Name *</label>
+            <input class="field" id="first_name" name="first_name"
+                   type="text" placeholder="Jane"
+                   autocomplete="given-name" autocapitalize="words" />
+            <p class="err-msg text-red text-xs mt-1 hidden" data-for="first_name">Required</p>
+          </div>
+          <div>
+            <label class="field-label" for="last_name">Last Name *</label>
+            <input class="field" id="last_name" name="last_name"
+                   type="text" placeholder="Smith"
+                   autocomplete="family-name" autocapitalize="words" />
+            <p class="err-msg text-red text-xs mt-1 hidden" data-for="last_name">Required</p>
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <label class="field-label" for="email_address">Email Address *</label>
+          <input class="field" id="email_address" name="email_address"
+                 type="email" placeholder="jane.smith@email.com"
+                 autocomplete="email" inputmode="email" />
+          <p class="err-msg text-red text-xs mt-1 hidden" data-for="email_address">Valid email required</p>
+        </div>
+
+        <div>
+          <label class="field-label" for="phone_number">Phone Number *</label>
+          <input class="field" id="phone_number" name="phone_number"
+                 type="tel" placeholder="(401) 555-0100"
+                 autocomplete="tel" inputmode="tel" />
+          <p class="err-msg text-red text-xs mt-1 hidden" data-for="phone_number">Required</p>
+        </div>
+      </div>
+
+      <!-- ── Card: Liability Waiver ─────────────────────────────────── -->
+      <div class="bg-white rounded-xl border border-slate shadow-sm p-5 anim anim-3">
+        <h2 class="font-condensed text-navy font-bold tracking-wide uppercase mb-3 pb-3 border-b border-slate" style="font-size:16px">
+          Liability Waiver &amp; Release
+        </h2>
+
+        <div id="waiver-text" class="bg-slate rounded-lg p-3 text-xs leading-relaxed mb-4 border border-slate" style="color:#445">
+          By signing below, I acknowledge that I am voluntarily participating in a training
+          course provided by American Safety Programs &amp; Training Inc. (ASPT), an American
+          Heart Association Authorized Training Center. I understand that CPR/BLS/First Aid
+          training involves physical activity including chest compressions on mannequins and
+          other hands-on skills practice. I agree to follow all instructor directions and
+          safety guidelines throughout the course. I acknowledge that I am physically capable
+          of participating in this training. I hereby release ASPT, its instructors, officers,
+          directors, employees, and agents from any and all liability, claims, or causes of
+          action arising from my participation in this course. I confirm that all information
+          I have provided on this form is accurate and complete. I understand that my digital
+          signature below has the same legal validity as a handwritten signature.
+        </div>
+
+        <label class="flex items-start gap-3 cursor-pointer group">
+          <div class="relative mt-0.5 flex-shrink-0">
+            <input type="checkbox" id="waiver_agreed" class="sr-only peer" />
+            <div class="w-5 h-5 rounded border-2 border-slate-300 bg-white peer-checked:bg-navy peer-checked:border-navy transition-all flex items-center justify-center"
+                 style="border-color:#D1D9E6;">
+              <svg class="hidden peer-checked-show w-3 h-3 text-white" fill="none" viewBox="0 0 12 12" id="check-icon">
+                <path d="M2 6l3 3 5-5" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+          </div>
+          <span class="text-sm leading-snug" style="color:#445" id="waiver-label">
+            I have read and agree to the Liability Waiver and Release above. *
+          </span>
+        </label>
+        <p class="err-msg text-red text-xs mt-2 hidden" data-for="waiver_agreed">You must agree before continuing</p>
+      </div>
+
+      <!-- ── Card: Signature ────────────────────────────────────────── -->
+      <div class="bg-white rounded-xl border border-slate shadow-sm p-5 anim anim-4">
+        <div class="flex items-center justify-between mb-1 pb-3 border-b border-slate">
+          <h2 class="font-condensed text-navy font-bold tracking-wide uppercase" style="font-size:16px">
+            Digital Signature *
+          </h2>
+          <button type="button" id="clear-sig"
+                  class="hidden text-red text-xs font-semibold underline font-body">
+            Clear
+          </button>
+        </div>
+        <p class="text-xs italic mb-3 mt-2" style="color:#889">
+          Sign with your finger in the box below
+        </p>
+
+        <div id="sig-wrap">
+          <!-- Placeholder hint -->
+          <div id="sig-hint"
+               class="absolute inset-0 flex items-center justify-center pointer-events-none"
+               style="color:#C8D0DC; font-family:'Barlow',sans-serif; font-size:14px;">
+            Sign here
+          </div>
+          <canvas id="sig-canvas"></canvas>
+        </div>
+        <p class="err-msg text-red text-xs mt-2 hidden" data-for="signature_data">Signature is required</p>
+      </div>
+
+      <!-- ── Submit ──────────────────────────────────────────────────── -->
+      <div class="anim anim-5 pb-6">
+        <button type="button" id="submit-btn">
+          ✓ &nbsp;Complete Check-In
+        </button>
+        <p id="submit-error" class="text-red text-sm text-center mt-3 hidden font-semibold"></p>
+        <p class="text-center text-xs mt-3" style="color:#AAB">
+          American Safety Programs &amp; Training Inc.<br>
+          AHA Authorized Training Center · Rhode Island
+        </p>
+      </div>
+
+    </div><!-- /form body -->
+  </div><!-- /#form-view -->
+
+
+  <!-- ═══════════════════════════════════════════════════════ SUCCESS VIEW -->
+  <div id="success-view" class="hidden min-h-screen flex items-center justify-center p-6">
+    <div class="bg-white rounded-2xl shadow-lg border border-slate max-w-sm w-full text-center p-10">
+      <div class="check-circle w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6"
+           style="background:#eafaf1; border:3px solid #27ae60; font-size:38px;">
+        ✓
+      </div>
+      <h1 class="font-condensed text-navy font-bold text-3xl mb-2 tracking-wide">
+        You're Checked In!
+      </h1>
+      <p class="text-base mb-6" style="color:#556">
+        Welcome, <strong id="success-name"></strong>!<br>
+        Your waiver has been recorded for<br>
+        <strong id="success-course"></strong>.
+      </p>
+      <div class="bg-slate rounded-xl p-4 text-sm" style="color:#556">
+        Please take a seat — your instructor will begin shortly.
+      </div>
+      <p class="text-xs mt-8" style="color:#AAB">
+        American Safety Programs &amp; Training Inc.
+      </p>
+    </div>
+  </div>
+
+
+  <!-- ═══════════════════════════════════════════════════════════ SCRIPTS -->
+  <script>
+  (() => {
+    // ── Config ────────────────────────────────────────────────────────
+    // Change this to your Render/PythonAnywhere URL when deployed
+    const API_BASE = 'http://127.0.0.1:8000';
+
+    // ── Read URL params (set by QR code link) ─────────────────────────
+    // e.g. intake.html?course=BLS+for+Healthcare+Providers&date=2026-03-15
+    const params      = new URLSearchParams(window.location.search);
+    const courseType  = params.get('course') || 'BLS for Healthcare Providers';
+    const classDate   = params.get('date')   || new Date().toISOString().split('T')[0];
+
+    // Populate session banner
+    document.getElementById('banner-course').textContent = courseType;
+    document.getElementById('banner-date').textContent   = formatDate(classDate);
+
+    // ── Signature Pad ─────────────────────────────────────────────────
+    const canvas  = document.getElementById('sig-canvas');
+    const sigWrap = document.getElementById('sig-wrap');
+    const hint    = document.getElementById('sig-hint');
+    const clearBtn = document.getElementById('clear-sig');
+
+    // Make canvas pixel-perfect on retina screens
+    function resizeCanvas() {
+      const ratio = window.devicePixelRatio || 1;
+      const rect  = canvas.getBoundingClientRect();
+      canvas.width  = rect.width  * ratio;
+      canvas.height = rect.height * ratio;
+      canvas.getContext('2d').scale(ratio, ratio);
+      pad.clear();
+    }
+
+    const pad = new SignaturePad(canvas, {
+      minWidth: 1.5,
+      maxWidth: 3,
+      penColor: '#0D1F3C',
+    });
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+
+    pad.addEventListener('beginStroke', () => {
+      hint.style.display    = 'none';
+      sigWrap.classList.remove('error');
+      sigWrap.classList.add('signed');
+      clearBtn.classList.remove('hidden');
+    });
+
+    clearBtn.addEventListener('click', () => {
+      pad.clear();
+      hint.style.display = 'flex';
+      sigWrap.classList.remove('signed', 'error');
+      clearBtn.classList.add('hidden');
+    });
+
+    // ── Checkbox visual feedback ──────────────────────────────────────
+    const checkbox   = document.getElementById('waiver_agreed');
+    const checkIcon  = document.getElementById('check-icon');
+    const checkBox   = checkbox.closest('label').querySelector('div > div');
+
+    checkbox.addEventListener('change', () => {
+      if (checkbox.checked) {
+        checkIcon.classList.remove('hidden');
+        checkBox.style.backgroundColor = '#0D1F3C';
+        checkBox.style.borderColor     = '#0D1F3C';
+        hideErr('waiver_agreed');
+      } else {
+        checkIcon.classList.add('hidden');
+        checkBox.style.backgroundColor = '#fff';
+        checkBox.style.borderColor     = '#D1D9E6';
+      }
+    });
+
+    // ── Validation ────────────────────────────────────────────────────
+    function showErr(field, msg) {
+      const input = document.getElementById(field);
+      if (input) input.classList.add('error');
+      const errEl = document.querySelector(`.err-msg[data-for="${field}"]`);
+      if (errEl) { errEl.textContent = msg || errEl.textContent; errEl.classList.remove('hidden'); }
+    }
+
+    function hideErr(field) {
+      const input = document.getElementById(field);
+      if (input) input.classList.remove('error');
+      const errEl = document.querySelector(`.err-msg[data-for="${field}"]`);
+      if (errEl) errEl.classList.add('hidden');
+    }
+
+    // Clear errors on input
+    ['first_name','last_name','email_address','phone_number'].forEach(id => {
+      document.getElementById(id).addEventListener('input', () => hideErr(id));
+    });
+
+    function validate() {
+      let valid = true;
+
+      const firstName = document.getElementById('first_name').value.trim();
+      const lastName  = document.getElementById('last_name').value.trim();
+      const email     = document.getElementById('email_address').value.trim();
+      const phone     = document.getElementById('phone_number').value.trim();
+
+      if (!firstName)                    { showErr('first_name'); valid = false; }
+      if (!lastName)                     { showErr('last_name');  valid = false; }
+      if (!email || !/\S+@\S+\.\S+/.test(email)) {
+        showErr('email_address', 'Valid email required'); valid = false;
+      }
+      if (!phone)                        { showErr('phone_number'); valid = false; }
+      if (!checkbox.checked)             { showErr('waiver_agreed'); valid = false; }
+      if (pad.isEmpty()) {
+        sigWrap.classList.add('error');
+        document.querySelector('.err-msg[data-for="signature_data"]').classList.remove('hidden');
+        valid = false;
+      }
+
+      return valid;
+    }
+
+    // ── Submit ────────────────────────────────────────────────────────
+    const submitBtn   = document.getElementById('submit-btn');
+    const submitError = document.getElementById('submit-error');
+
+    submitBtn.addEventListener('click', async () => {
+      submitError.classList.add('hidden');
+      if (!validate()) {
+        // Scroll to first error
+        const firstErr = document.querySelector('.field.error, #sig-wrap.error');
+        if (firstErr) firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      const payload = {
+        class_date:     classDate,
+        course_type:    courseType,
+        first_name:     document.getElementById('first_name').value.trim(),
+        last_name:      document.getElementById('last_name').value.trim(),
+        email_address:  document.getElementById('email_address').value.trim(),
+        phone_number:   document.getElementById('phone_number').value.trim(),
+        signature_data: pad.toDataURL('image/png'),
+        waiver_agreed:  true,
+      };
+
+      // Loading state
+      submitBtn.disabled    = true;
+      submitBtn.textContent = 'Submitting…';
+      submitBtn.classList.add('loading');
+
+      try {
+        const res = await fetch(`${API_BASE}/submit-waiver`, {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(payload),
+        });
+
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || `Server error ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        // Show success screen
+        document.getElementById('success-name').textContent   = `${payload.first_name} ${payload.last_name}`;
+        document.getElementById('success-course').textContent = courseType;
+        document.getElementById('form-view').classList.add('hidden');
+        document.getElementById('success-view').classList.remove('hidden');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      } catch (err) {
+        submitError.textContent = `Submission failed: ${err.message}. Please ask your instructor for a paper form.`;
+        submitError.classList.remove('hidden');
+        submitBtn.disabled    = false;
+        submitBtn.textContent = '✓  Complete Check-In';
+        submitBtn.classList.remove('loading');
+      }
+    });
+
+    // ── Helpers ───────────────────────────────────────────────────────
+    function formatDate(iso) {
+      try {
+        const [y, m, d] = iso.split('-').map(Number);
+        return new Date(y, m - 1, d).toLocaleDateString('en-US', {
+          weekday: 'short', month: 'long', day: 'numeric', year: 'numeric'
+        });
+      } catch { return iso; }
+    }
+
+  })();
+  </script>
+
+</body>
+</html>
