@@ -12,3 +12,14 @@ __pycache__/
 
 # VS Code settings
 .vscode/
+
+# Python virtual environment
+.venv/
+venv/
+
+# Node modules (for aspt-roster-ui)
+node_modules/
+dist/
+
+# OS files
+.DS_Store
