@@ -1,11 +1,11 @@
+import { useQuery, useMutation } from '@tanstack/react-query';
+
+export const API_BASE = import.meta.env.VITE_API_BASE ?? '/api';
+
 // src/api/index.js
 // All API calls + React Query hooks in one place.
 // The proxy in vite.config.js rewrites /api → http://127.0.0.1:8000
 // so in production just swap API_BASE to your Render URL.
-
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-
-export const API_BASE = '/api';
 
 // ── Raw fetch helpers ─────────────────────────────────────────────────────
 
@@ -17,7 +17,7 @@ async function post(path, body) {
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
-    throw new Error(err.detail || `Server error ${res.status}`);
+    throw new Error(err.message || 'API error');
   }
   return res.json();
 }
