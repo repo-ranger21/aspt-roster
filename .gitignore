@@ -1,0 +1,14 @@
+# Database — contains real student PII, never commit this
+aspt.db
+
+# Generated output folders
+rosters/
+qr_codes/
+
+# Python cache
+__pycache__/
+*.pyc
+.env
+
+# VS Code settings
+.vscode/
