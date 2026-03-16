@@ -1,0 +1,16 @@
+# ASPT Roster & Compliance Generator
+# Install all dependencies with: pip install -r requirements.txt
+
+# API framework
+fastapi
+uvicorn[standard]
+
+# Data validation
+pydantic[email]
+
+# PDF generation
+reportlab
+
+# QR code generation
+qrcode[pil]
+pillow
