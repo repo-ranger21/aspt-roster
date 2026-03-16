@@ -10,27 +10,11 @@ import io
 from pathlib import Path
 from datetime import datetime
 
-from reportlab.lib import colors
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.units import inch
-from reportlab.platypus import (
-    SimpleDocTemplate, Table, TableStyle, Paragraph,
-    Spacer, HRFlowable, Image
-)
-from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
-
-# ── Branding ──────────────────────────────────────────────────────────────
-
-NAVY   = colors.HexColor("#0D1F3C")
-RED    = colors.HexColor("#C8102E")
-ORANGE = colors.HexColor("#F47920")
-LIGHT  = colors.HexColor("#F4F6FA")
-WHITE  = colors.white
-BLACK  = colors.black
+import fitz  # PyMuPDF
 
 DB_PATH   = Path("aspt.db")
 OUT_DIR   = Path("rosters")
+TEMPLATE  = Path("blank_aha_roster.pdf")
 
 # ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -52,18 +36,6 @@ def fetch_students(class_date: str, course_type: str) -> list[dict]:
     return [dict(r) for r in rows]
 
 
-def b64_to_image(b64_string: str, width: float, height: float) -> Image | None:
-    """Convert a base64 signature string to a ReportLab Image object."""
-    try:
-        # Strip the data URI prefix (data:image/png;base64,...)
-        if "," in b64_string:
-            b64_string = b64_string.split(",", 1)[1]
-        img_bytes = base64.b64decode(b64_string)
-        return Image(io.BytesIO(img_bytes), width=width, height=height)
-    except Exception:
-        return None  # Render a blank cell if signature is corrupt
-
-
 def format_phone(raw: str) -> str:
     """Normalize phone to (XXX) XXX-XXXX if 10 digits, else return as-is."""
     digits = "".join(filter(str.isdigit, raw))
@@ -76,7 +48,7 @@ def format_timestamp(iso: str) -> str:
     """Convert ISO 8601 UTC to readable local format for the roster."""
     try:
         dt = datetime.fromisoformat(iso.replace("Z", "+00:00"))
-        return dt.strftime("%-I:%M %p")   # e.g. "9:04 AM"
+        return dt.strftime("%I:%M %p").lstrip("0")   # e.g. "9:04 AM"
     except Exception:
         return iso
 
@@ -107,259 +79,68 @@ def generate_roster_pdf(
 
     students = fetch_students(class_date, course_type)
 
-    # ── Styles ───────────────────────────────────────────────────────────
-    styles = getSampleStyleSheet()
+    # ── Open blank template ──
+    doc = fitz.open(TEMPLATE)
+    page = doc[0]
 
-    header_org = ParagraphStyle(
-        "HeaderOrg",
-        fontName="Helvetica-Bold",
-        fontSize=15,
-        textColor=WHITE,
-        leading=18,
-    )
-    header_sub = ParagraphStyle(
-        "HeaderSub",
-        fontName="Helvetica",
-        fontSize=9,
-        textColor=colors.HexColor("#AABBCC"),
-        leading=12,
-    )
-    meta_label = ParagraphStyle(
-        "MetaLabel",
-        fontName="Helvetica-Bold",
-        fontSize=7,
-        textColor=colors.HexColor("#889999"),
-        leading=10,
-        spaceAfter=1,
-    )
-    meta_value = ParagraphStyle(
-        "MetaValue",
-        fontName="Helvetica-Bold",
-        fontSize=10,
-        textColor=NAVY,
-        leading=13,
-    )
-    col_header = ParagraphStyle(
-        "ColHeader",
-        fontName="Helvetica-Bold",
-        fontSize=8,
-        textColor=WHITE,
-    )
-    cell_normal = ParagraphStyle(
-        "CellNormal",
-        fontName="Helvetica",
-        fontSize=8,
-        textColor=BLACK,
-        leading=11,
-    )
-    cell_name = ParagraphStyle(
-        "CellName",
-        fontName="Helvetica-Bold",
-        fontSize=9,
-        textColor=NAVY,
-        leading=12,
-    )
-    footer_style = ParagraphStyle(
-        "Footer",
-        fontName="Helvetica",
-        fontSize=7,
-        textColor=colors.HexColor("#AAAAAA"),
-        alignment=TA_CENTER,
-    )
+    # Text styling: Helvetica 8pt, navy color
+    font = "helv"
+    fontsize = 8
+    color = (0.051, 0.122, 0.235)  # Navy: #0D1F3C
 
-    # ── Document ─────────────────────────────────────────────────────────
-    doc = SimpleDocTemplate(
-        str(output_path),
-        pagesize=letter,
-        leftMargin=0.5 * inch,
-        rightMargin=0.5 * inch,
-        topMargin=0.4 * inch,
-        bottomMargin=0.5 * inch,
-    )
-
-    story = []
-    PAGE_W = letter[0] - inch   # usable width
-
-    # ── Header Block ─────────────────────────────────────────────────────
-    # Navy background bar with org name + ATC badge
-    header_data = [[
-        Paragraph("AMERICAN SAFETY PROGRAMS & TRAINING INC.", header_org),
-        Paragraph("AHA AUTHORIZED TRAINING CENTER", ParagraphStyle(
-            "ATCBadge",
-            fontName="Helvetica-Bold",
-            fontSize=8,
-            textColor=ORANGE,
-            alignment=TA_RIGHT,
-            leading=11,
-        )),
-    ]]
-    header_table = Table(header_data, colWidths=[PAGE_W * 0.72, PAGE_W * 0.28])
-    header_table.setStyle(TableStyle([
-        ("BACKGROUND",   (0, 0), (-1, -1), NAVY),
-        ("VALIGN",       (0, 0), (-1, -1), "MIDDLE"),
-        ("LEFTPADDING",  (0, 0), (-1, -1), 12),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 12),
-        ("TOPPADDING",   (0, 0), (-1, -1), 10),
-        ("BOTTOMPADDING",(0, 0), (-1, -1), 10),
-    ]))
-    story.append(header_table)
-
-    # Red accent rule
-    story.append(HRFlowable(width="100%", thickness=4, color=RED, spaceAfter=0))
-
-    # ── Session Metadata Row ──────────────────────────────────────────────
-    # Formats class_date for display
+    # ── Session fields ──
+    # Format date for display
     try:
         display_date = datetime.strptime(class_date, "%Y-%m-%d").strftime("%B %d, %Y")
     except ValueError:
         display_date = class_date
 
-    generated_on = datetime.now().strftime("%B %d, %Y at %I:%M %p")
+    page.insert_text((44, 159), course_type, fontname=font, fontsize=fontsize, color=color)
+    page.insert_text((179, 159), instructor, fontname=font, fontsize=fontsize, color=color)
+    page.insert_text((314, 159), display_date, fontname=font, fontsize=fontsize, color=color)
+    page.insert_text((449, 159), location, fontname=font, fontsize=fontsize, color=color)
 
-    def meta_cell(label: str, value: str):
-        return [Paragraph(label.upper(), meta_label), Paragraph(value, meta_value)]
+    # ── Student rows ──
+    # Row 1 starts at y=577, each subsequent row decrements by 20
+    ROW_START_Y = 215
+    ROW_HEIGHT = 20
 
-    meta_data = [[
-        meta_cell("Course",     course_type),
-        meta_cell("Instructor", instructor),
-        meta_cell("Date",       display_date),
-        meta_cell("Location",   location),
-        meta_cell("Students",   str(len(students))),
-    ]]
-    meta_table = Table(meta_data, colWidths=[PAGE_W / 5] * 5)
-    meta_table.setStyle(TableStyle([
-        ("BACKGROUND",   (0, 0), (-1, -1), LIGHT),
-        ("VALIGN",       (0, 0), (-1, -1), "TOP"),
-        ("LEFTPADDING",  (0, 0), (-1, -1), 10),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-        ("TOPPADDING",   (0, 0), (-1, -1), 8),
-        ("BOTTOMPADDING",(0, 0), (-1, -1), 8),
-        ("LINEAFTER",    (0, 0), (-2, 0), 0.5, colors.HexColor("#D1D9E6")),
-    ]))
-    story.append(meta_table)
-    story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor("#D1D9E6"), spaceAfter=12))
+    for idx, s in enumerate(students[:20]):  # Max 20 students per page
+        y = ROW_START_Y + (idx * ROW_HEIGHT)
 
-    # ── Roster Title ─────────────────────────────────────────────────────
-    story.append(Paragraph(
-        "CLASS ATTENDANCE ROSTER &amp; LIABILITY WAIVER RECORD",
-        ParagraphStyle("RosterTitle", fontName="Helvetica-Bold", fontSize=12,
-                       textColor=NAVY, alignment=TA_CENTER, spaceAfter=10),
-    ))
+        # Text fields
+        page.insert_text((62, y), s.get("last_name", ""), fontname=font, fontsize=fontsize, color=color)
+        page.insert_text((162, y), s.get("first_name", ""), fontname=font, fontsize=fontsize, color=color)
+        page.insert_text((252, y), format_phone(s.get("phone_number", "")), fontname=font, fontsize=fontsize, color=color)
+        page.insert_text((334, y), s.get("email_address", ""), fontname=font, fontsize=fontsize, color=color)
+        page.insert_text((472, y), format_timestamp(s.get("timestamp", "")), fontname=font, fontsize=fontsize, color=color)
 
-    # ── Student Table ─────────────────────────────────────────────────────
-    # Column widths (must sum to PAGE_W)
-    COL_W = {
-        "#":         0.25 * inch,
-        "Last":      1.10 * inch,
-        "First":     1.00 * inch,
-        "Phone":     0.95 * inch,
-        "Email":     1.65 * inch,
-        "Time":      0.65 * inch,
-        "Signature": 1.65 * inch,
-    }
-    col_widths = list(COL_W.values())
+        # Signature image
+        sig_data = s.get("signature_data", "")
+        if sig_data:
+            try:
+                if "," in sig_data:
+                    sig_data = sig_data.split(",", 1)[1]
+                img_bytes = base64.b64decode(sig_data)
+                sig_rect = fitz.Rect(522, y - 16, 576, y + 2)
+                page.insert_image(
+                    sig_rect,
+                    stream=fitz.open("png", img_bytes)[0].get_pixmap().tobytes(),
+                    keep_proportion=False,
+                )
+            except Exception as e:
+                print(f"  ⚠ Signature render failed row {idx+1}: {e}")
 
-    def col_hdr(text):
-        return Paragraph(text, col_header)
+    # ── Sign-off fields (leave blank for instructor to fill manually) ──
+    # Coordinates provided but not pre-filled:
+    # instructor_sig: x=42, y=149
+    # print_name: x=222, y=149
+    # date: x=402, y=149
 
-    table_data = [[
-        col_hdr("#"),
-        col_hdr("LAST NAME"),
-        col_hdr("FIRST NAME"),
-        col_hdr("PHONE"),
-        col_hdr("EMAIL"),
-        col_hdr("CHECK-IN"),
-        col_hdr("SIGNATURE"),
-    ]]
+    # ── Save ──
+    doc.save(str(output_path))
+    doc.close()
 
-    for idx, s in enumerate(students, start=1):
-        sig_image = b64_to_image(s.get("signature_data", ""), width=1.50 * inch, height=0.38 * inch)
-        sig_cell  = sig_image if sig_image else Paragraph("", cell_normal)
-
-        row = [
-            Paragraph(str(idx), cell_normal),
-            Paragraph(s["last_name"],    cell_name),
-            Paragraph(s["first_name"],   cell_name),
-            Paragraph(format_phone(s.get("phone_number", "")), cell_normal),
-            Paragraph(s.get("email_address", ""), cell_normal),
-            Paragraph(format_timestamp(s.get("timestamp", "")), cell_normal),
-            sig_cell,
-        ]
-        table_data.append(row)
-
-    # Add blank rows so printed form still has space for late walk-ins
-    BLANK_ROWS = max(0, 20 - len(students))
-    for _ in range(BLANK_ROWS):
-        table_data.append(["", "", "", "", "", "", ""])
-
-    roster_table = Table(table_data, colWidths=col_widths, repeatRows=1)
-
-    row_count = len(table_data)
-    roster_table.setStyle(TableStyle([
-        # Header row
-        ("BACKGROUND",    (0, 0), (-1, 0),  NAVY),
-        ("TEXTCOLOR",     (0, 0), (-1, 0),  WHITE),
-        ("FONTNAME",      (0, 0), (-1, 0),  "Helvetica-Bold"),
-        ("FONTSIZE",      (0, 0), (-1, 0),  8),
-        ("TOPPADDING",    (0, 0), (-1, 0),  7),
-        ("BOTTOMPADDING", (0, 0), (-1, 0),  7),
-
-        # Data rows — alternating shading
-        *[("BACKGROUND", (0, r), (-1, r), LIGHT)
-          for r in range(2, row_count, 2)],
-
-        # Grid
-        ("GRID",          (0, 0), (-1, -1), 0.4, colors.HexColor("#D1D9E6")),
-        ("LINEBELOW",     (0, 0), (-1, 0),  1.5, RED),
-
-        # Cell padding
-        ("TOPPADDING",    (0, 1), (-1, -1), 5),
-        ("BOTTOMPADDING", (0, 1), (-1, -1), 5),
-        ("LEFTPADDING",   (0, 0), (-1, -1), 5),
-        ("RIGHTPADDING",  (0, 0), (-1, -1), 5),
-
-        # Vertical alignment
-        ("VALIGN",        (0, 0), (-1, -1), "MIDDLE"),
-    ]))
-
-    story.append(roster_table)
-    story.append(Spacer(1, 0.3 * inch))
-
-    # ── Instructor Sign-Off Block ─────────────────────────────────────────
-    signoff_data = [[
-        [Paragraph("INSTRUCTOR SIGNATURE", meta_label),
-         HRFlowable(width="100%", thickness=1, color=NAVY, spaceAfter=4),
-         Spacer(1, 0.05 * inch)],
-        [Paragraph("PRINT NAME", meta_label),
-         HRFlowable(width="100%", thickness=1, color=NAVY, spaceAfter=4),
-         Spacer(1, 0.05 * inch)],
-        [Paragraph("DATE", meta_label),
-         HRFlowable(width="100%", thickness=1, color=NAVY, spaceAfter=4),
-         Spacer(1, 0.05 * inch)],
-    ]]
-    signoff_table = Table(signoff_data, colWidths=[PAGE_W / 3] * 3)
-    signoff_table.setStyle(TableStyle([
-        ("VALIGN",       (0, 0), (-1, -1), "BOTTOM"),
-        ("LEFTPADDING",  (0, 0), (-1, -1), 6),
-        ("RIGHTPADDING", (0, 0), (-1, -1), 18),
-        ("TOPPADDING",   (0, 0), (-1, -1), 4),
-        ("BOTTOMPADDING",(0, 0), (-1, -1), 4),
-    ]))
-    story.append(signoff_table)
-    story.append(Spacer(1, 0.2 * inch))
-
-    # ── Footer ────────────────────────────────────────────────────────────
-    story.append(HRFlowable(width="100%", thickness=0.5,
-                            color=colors.HexColor("#D1D9E6"), spaceAfter=5))
-    story.append(Paragraph(
-        f"Generated {generated_on} · American Safety Programs &amp; Training Inc. · "
-        f"AHA Authorized Training Center · schoolofamericansafety.org · "
-        f"This document constitutes an official training record.",
-        footer_style,
-    ))
-
-    # ── Build ─────────────────────────────────────────────────────────────
-    doc.build(story)
     print(f"✓ Roster saved → {output_path}")
     return output_path
 
