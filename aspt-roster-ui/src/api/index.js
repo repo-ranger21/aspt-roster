@@ -1,6 +1,3 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
-
-export const API_BASE = import.meta.env.VITE_API_BASE ?? '/api';
 
 // src/api/index.js
 // All API calls + React Query hooks in one place.

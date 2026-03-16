@@ -1,0 +1,657 @@
+{
+  "session_course_program": {
+    "x": 44.0,
+    "y": 633.0,
+    "w": 119.0
+  },
+  "session_instructor": {
+    "x": 179.0,
+    "y": 633.0,
+    "w": 119.0
+  },
+  "session_class_date": {
+    "x": 314.0,
+    "y": 633.0,
+    "w": 119.0
+  },
+  "session_location_facility": {
+    "x": 449.0,
+    "y": 633.0,
+    "w": 119.0
+  },
+  "student_1_last_name": {
+    "x": 62,
+    "y": 577.0,
+    "w": 92
+  },
+  "student_1_first_name": {
+    "x": 162,
+    "y": 577.0,
+    "w": 82
+  },
+  "student_1_phone": {
+    "x": 252,
+    "y": 577.0,
+    "w": 74
+  },
+  "student_1_email": {
+    "x": 334,
+    "y": 577.0,
+    "w": 130
+  },
+  "student_1_checkin": {
+    "x": 472,
+    "y": 577.0,
+    "w": 42
+  },
+  "student_1_signature": {
+    "x": 522,
+    "y": 577.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_2_last_name": {
+    "x": 62,
+    "y": 557.0,
+    "w": 92
+  },
+  "student_2_first_name": {
+    "x": 162,
+    "y": 557.0,
+    "w": 82
+  },
+  "student_2_phone": {
+    "x": 252,
+    "y": 557.0,
+    "w": 74
+  },
+  "student_2_email": {
+    "x": 334,
+    "y": 557.0,
+    "w": 130
+  },
+  "student_2_checkin": {
+    "x": 472,
+    "y": 557.0,
+    "w": 42
+  },
+  "student_2_signature": {
+    "x": 522,
+    "y": 557.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_3_last_name": {
+    "x": 62,
+    "y": 537.0,
+    "w": 92
+  },
+  "student_3_first_name": {
+    "x": 162,
+    "y": 537.0,
+    "w": 82
+  },
+  "student_3_phone": {
+    "x": 252,
+    "y": 537.0,
+    "w": 74
+  },
+  "student_3_email": {
+    "x": 334,
+    "y": 537.0,
+    "w": 130
+  },
+  "student_3_checkin": {
+    "x": 472,
+    "y": 537.0,
+    "w": 42
+  },
+  "student_3_signature": {
+    "x": 522,
+    "y": 537.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_4_last_name": {
+    "x": 62,
+    "y": 517.0,
+    "w": 92
+  },
+  "student_4_first_name": {
+    "x": 162,
+    "y": 517.0,
+    "w": 82
+  },
+  "student_4_phone": {
+    "x": 252,
+    "y": 517.0,
+    "w": 74
+  },
+  "student_4_email": {
+    "x": 334,
+    "y": 517.0,
+    "w": 130
+  },
+  "student_4_checkin": {
+    "x": 472,
+    "y": 517.0,
+    "w": 42
+  },
+  "student_4_signature": {
+    "x": 522,
+    "y": 517.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_5_last_name": {
+    "x": 62,
+    "y": 497.0,
+    "w": 92
+  },
+  "student_5_first_name": {
+    "x": 162,
+    "y": 497.0,
+    "w": 82
+  },
+  "student_5_phone": {
+    "x": 252,
+    "y": 497.0,
+    "w": 74
+  },
+  "student_5_email": {
+    "x": 334,
+    "y": 497.0,
+    "w": 130
+  },
+  "student_5_checkin": {
+    "x": 472,
+    "y": 497.0,
+    "w": 42
+  },
+  "student_5_signature": {
+    "x": 522,
+    "y": 497.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_6_last_name": {
+    "x": 62,
+    "y": 477.0,
+    "w": 92
+  },
+  "student_6_first_name": {
+    "x": 162,
+    "y": 477.0,
+    "w": 82
+  },
+  "student_6_phone": {
+    "x": 252,
+    "y": 477.0,
+    "w": 74
+  },
+  "student_6_email": {
+    "x": 334,
+    "y": 477.0,
+    "w": 130
+  },
+  "student_6_checkin": {
+    "x": 472,
+    "y": 477.0,
+    "w": 42
+  },
+  "student_6_signature": {
+    "x": 522,
+    "y": 477.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_7_last_name": {
+    "x": 62,
+    "y": 457.0,
+    "w": 92
+  },
+  "student_7_first_name": {
+    "x": 162,
+    "y": 457.0,
+    "w": 82
+  },
+  "student_7_phone": {
+    "x": 252,
+    "y": 457.0,
+    "w": 74
+  },
+  "student_7_email": {
+    "x": 334,
+    "y": 457.0,
+    "w": 130
+  },
+  "student_7_checkin": {
+    "x": 472,
+    "y": 457.0,
+    "w": 42
+  },
+  "student_7_signature": {
+    "x": 522,
+    "y": 457.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_8_last_name": {
+    "x": 62,
+    "y": 437.0,
+    "w": 92
+  },
+  "student_8_first_name": {
+    "x": 162,
+    "y": 437.0,
+    "w": 82
+  },
+  "student_8_phone": {
+    "x": 252,
+    "y": 437.0,
+    "w": 74
+  },
+  "student_8_email": {
+    "x": 334,
+    "y": 437.0,
+    "w": 130
+  },
+  "student_8_checkin": {
+    "x": 472,
+    "y": 437.0,
+    "w": 42
+  },
+  "student_8_signature": {
+    "x": 522,
+    "y": 437.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_9_last_name": {
+    "x": 62,
+    "y": 417.0,
+    "w": 92
+  },
+  "student_9_first_name": {
+    "x": 162,
+    "y": 417.0,
+    "w": 82
+  },
+  "student_9_phone": {
+    "x": 252,
+    "y": 417.0,
+    "w": 74
+  },
+  "student_9_email": {
+    "x": 334,
+    "y": 417.0,
+    "w": 130
+  },
+  "student_9_checkin": {
+    "x": 472,
+    "y": 417.0,
+    "w": 42
+  },
+  "student_9_signature": {
+    "x": 522,
+    "y": 417.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_10_last_name": {
+    "x": 62,
+    "y": 397.0,
+    "w": 92
+  },
+  "student_10_first_name": {
+    "x": 162,
+    "y": 397.0,
+    "w": 82
+  },
+  "student_10_phone": {
+    "x": 252,
+    "y": 397.0,
+    "w": 74
+  },
+  "student_10_email": {
+    "x": 334,
+    "y": 397.0,
+    "w": 130
+  },
+  "student_10_checkin": {
+    "x": 472,
+    "y": 397.0,
+    "w": 42
+  },
+  "student_10_signature": {
+    "x": 522,
+    "y": 397.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_11_last_name": {
+    "x": 62,
+    "y": 377.0,
+    "w": 92
+  },
+  "student_11_first_name": {
+    "x": 162,
+    "y": 377.0,
+    "w": 82
+  },
+  "student_11_phone": {
+    "x": 252,
+    "y": 377.0,
+    "w": 74
+  },
+  "student_11_email": {
+    "x": 334,
+    "y": 377.0,
+    "w": 130
+  },
+  "student_11_checkin": {
+    "x": 472,
+    "y": 377.0,
+    "w": 42
+  },
+  "student_11_signature": {
+    "x": 522,
+    "y": 377.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_12_last_name": {
+    "x": 62,
+    "y": 357.0,
+    "w": 92
+  },
+  "student_12_first_name": {
+    "x": 162,
+    "y": 357.0,
+    "w": 82
+  },
+  "student_12_phone": {
+    "x": 252,
+    "y": 357.0,
+    "w": 74
+  },
+  "student_12_email": {
+    "x": 334,
+    "y": 357.0,
+    "w": 130
+  },
+  "student_12_checkin": {
+    "x": 472,
+    "y": 357.0,
+    "w": 42
+  },
+  "student_12_signature": {
+    "x": 522,
+    "y": 357.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_13_last_name": {
+    "x": 62,
+    "y": 337.0,
+    "w": 92
+  },
+  "student_13_first_name": {
+    "x": 162,
+    "y": 337.0,
+    "w": 82
+  },
+  "student_13_phone": {
+    "x": 252,
+    "y": 337.0,
+    "w": 74
+  },
+  "student_13_email": {
+    "x": 334,
+    "y": 337.0,
+    "w": 130
+  },
+  "student_13_checkin": {
+    "x": 472,
+    "y": 337.0,
+    "w": 42
+  },
+  "student_13_signature": {
+    "x": 522,
+    "y": 337.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_14_last_name": {
+    "x": 62,
+    "y": 317.0,
+    "w": 92
+  },
+  "student_14_first_name": {
+    "x": 162,
+    "y": 317.0,
+    "w": 82
+  },
+  "student_14_phone": {
+    "x": 252,
+    "y": 317.0,
+    "w": 74
+  },
+  "student_14_email": {
+    "x": 334,
+    "y": 317.0,
+    "w": 130
+  },
+  "student_14_checkin": {
+    "x": 472,
+    "y": 317.0,
+    "w": 42
+  },
+  "student_14_signature": {
+    "x": 522,
+    "y": 317.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_15_last_name": {
+    "x": 62,
+    "y": 297.0,
+    "w": 92
+  },
+  "student_15_first_name": {
+    "x": 162,
+    "y": 297.0,
+    "w": 82
+  },
+  "student_15_phone": {
+    "x": 252,
+    "y": 297.0,
+    "w": 74
+  },
+  "student_15_email": {
+    "x": 334,
+    "y": 297.0,
+    "w": 130
+  },
+  "student_15_checkin": {
+    "x": 472,
+    "y": 297.0,
+    "w": 42
+  },
+  "student_15_signature": {
+    "x": 522,
+    "y": 297.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_16_last_name": {
+    "x": 62,
+    "y": 277.0,
+    "w": 92
+  },
+  "student_16_first_name": {
+    "x": 162,
+    "y": 277.0,
+    "w": 82
+  },
+  "student_16_phone": {
+    "x": 252,
+    "y": 277.0,
+    "w": 74
+  },
+  "student_16_email": {
+    "x": 334,
+    "y": 277.0,
+    "w": 130
+  },
+  "student_16_checkin": {
+    "x": 472,
+    "y": 277.0,
+    "w": 42
+  },
+  "student_16_signature": {
+    "x": 522,
+    "y": 277.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_17_last_name": {
+    "x": 62,
+    "y": 257.0,
+    "w": 92
+  },
+  "student_17_first_name": {
+    "x": 162,
+    "y": 257.0,
+    "w": 82
+  },
+  "student_17_phone": {
+    "x": 252,
+    "y": 257.0,
+    "w": 74
+  },
+  "student_17_email": {
+    "x": 334,
+    "y": 257.0,
+    "w": 130
+  },
+  "student_17_checkin": {
+    "x": 472,
+    "y": 257.0,
+    "w": 42
+  },
+  "student_17_signature": {
+    "x": 522,
+    "y": 257.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_18_last_name": {
+    "x": 62,
+    "y": 237.0,
+    "w": 92
+  },
+  "student_18_first_name": {
+    "x": 162,
+    "y": 237.0,
+    "w": 82
+  },
+  "student_18_phone": {
+    "x": 252,
+    "y": 237.0,
+    "w": 74
+  },
+  "student_18_email": {
+    "x": 334,
+    "y": 237.0,
+    "w": 130
+  },
+  "student_18_checkin": {
+    "x": 472,
+    "y": 237.0,
+    "w": 42
+  },
+  "student_18_signature": {
+    "x": 522,
+    "y": 237.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_19_last_name": {
+    "x": 62,
+    "y": 217.0,
+    "w": 92
+  },
+  "student_19_first_name": {
+    "x": 162,
+    "y": 217.0,
+    "w": 82
+  },
+  "student_19_phone": {
+    "x": 252,
+    "y": 217.0,
+    "w": 74
+  },
+  "student_19_email": {
+    "x": 334,
+    "y": 217.0,
+    "w": 130
+  },
+  "student_19_checkin": {
+    "x": 472,
+    "y": 217.0,
+    "w": 42
+  },
+  "student_19_signature": {
+    "x": 522,
+    "y": 217.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "student_20_last_name": {
+    "x": 62,
+    "y": 197.0,
+    "w": 92
+  },
+  "student_20_first_name": {
+    "x": 162,
+    "y": 197.0,
+    "w": 82
+  },
+  "student_20_phone": {
+    "x": 252,
+    "y": 197.0,
+    "w": 74
+  },
+  "student_20_email": {
+    "x": 334,
+    "y": 197.0,
+    "w": 130
+  },
+  "student_20_checkin": {
+    "x": 472,
+    "y": 197.0,
+    "w": 42
+  },
+  "student_20_signature": {
+    "x": 522,
+    "y": 197.0,
+    "w": 50.0,
+    "h": 14
+  },
+  "signoff_instructor_signature": {
+    "x": 42.0,
+    "y": 149.0,
+    "w": 168.0
+  },
+  "signoff_print_name": {
+    "x": 222.0,
+    "y": 149.0,
+    "w": 168.0
+  },
+  "signoff_date": {
+    "x": 402.0,
+    "y": 149.0,
+    "w": 168.0
+  }
+}
