@@ -14,3 +14,4 @@ reportlab
 # QR code generation
 qrcode[pil]
 pillow
+pymupdf
