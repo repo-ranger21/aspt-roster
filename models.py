@@ -39,6 +39,19 @@ def init_db():
             cert_issued     INTEGER DEFAULT 0,
             notes           TEXT
         );
+
+        CREATE TABLE IF NOT EXISTS student_intake (
+            id             INTEGER PRIMARY KEY AUTOINCREMENT,
+            class_date     TEXT    NOT NULL,
+            course_type    TEXT    NOT NULL,
+            first_name     TEXT    NOT NULL,
+            last_name      TEXT    NOT NULL,
+            email_address  TEXT    NOT NULL,
+            phone_number   TEXT    NOT NULL,
+            signature_data TEXT    NOT NULL,
+            waiver_agreed  INTEGER NOT NULL DEFAULT 1,
+            timestamp      TEXT    NOT NULL
+        );
     """)
 
     conn.commit()
