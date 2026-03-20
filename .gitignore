@@ -23,3 +23,8 @@ dist/
 
 # OS files
 .DS_Store
+
+# Workspace and root package files
+aspt-roster.code-workspace
+package-lock.json
+package.json
