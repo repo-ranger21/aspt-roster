@@ -30,9 +30,6 @@ export default function QRDisplay({ session }) {
   const intakeUrl = `${window.location.origin}/intake?` +
     new URLSearchParams({ course: session.course, date: session.date });
 
-  const qrSrc =
-    `https://api.qrserver.com/v1/create-qr-code/?size=240x240` +
-    `&data=${encodeURIComponent(intakeUrl)}&bgcolor=F4F6FA&color=0D1F3C&margin=1`;
 
   return (
     <div className="max-w-lg">
@@ -58,7 +55,13 @@ export default function QRDisplay({ session }) {
         {/* QR image */}
         <div className="flex justify-center py-8 bg-slate">
           <div className="bg-white rounded-2xl p-4 shadow-inner border border-border inline-block">
-            <img src={qrSrc} alt="QR Code" width={240} height={240} className="block" />
+              <QRCodeSVG
+                value={intakeUrl}
+                size={240}
+                fgColor="#0D1F3C"
+                bgColor="#F4F6FA"
+                level="H"
+              />
           </div>
         </div>
 

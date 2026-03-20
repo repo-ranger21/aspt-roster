@@ -32,7 +32,10 @@ export const api = {
   generateRosterPdf: async (body) => {
     const res = await fetch(`${API_BASE}/generate-roster`, {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'X-API-Key': import.meta.env.VITE_INSTRUCTOR_API_KEY ?? '',
+      },
       body:    JSON.stringify(body),
     });
     if (!res.ok) throw new Error(`PDF generation failed: ${res.status}`);
