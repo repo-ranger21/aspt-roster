@@ -1,5 +1,13 @@
 # main.py
-from fastapi import FastAPI
+import os
+import re
+import bleach
+from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi.security import APIKeyHeader
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from pydantic import field_validator
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -9,7 +17,31 @@ from datetime import datetime
 from models import init_db, DB_PATH
 from generate_roster import generate_roster_pdf
 
+
 app = FastAPI(title="ASPT Roster API")
+
+# ── Rate limiting ──────────────────────────────────────────────────
+limiter = Limiter(key_func=get_remote_address, default_limits=["200/day"])
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# ── API key for instructor-only routes ─────────────────────────────
+API_KEY_NAME = "X-API-Key"
+api_key_header = APIKeyHeader(name=API_KEY_NAME, auto_error=False)
+
+async def require_api_key(key: str = Depends(api_key_header)):
+    expected = os.environ.get("INSTRUCTOR_API_KEY", "")
+    if not expected or key != expected:
+        raise HTTPException(status_code=403, detail="Invalid or missing API key")
+
+# ── Request size limit (2MB max) ───────────────────────────────────
+@app.middleware("http")
+async def limit_request_size(request: Request, call_next):
+    max_size = 2 * 1024 * 1024  # 2MB
+    content_length = request.headers.get("content-length")
+    if content_length and int(content_length) > max_size:
+        raise HTTPException(status_code=413, detail="Request too large")
+    return await call_next(request)
 
 # Allow your HTML frontend (even from file://) to hit this
 app.add_middleware(
@@ -98,15 +130,76 @@ def get_roster(session_id: str):
 # Additional routes for E2E testing and roster generation
 # ───────────────────────────────────────────────────────────────────────────
 
+
+VALID_COURSES = {
+    "BLS for Healthcare Providers",
+    "Heartsaver CPR AED",
+    "Heartsaver First Aid CPR AED",
+    "ACLS", "PALS",
+    "EMT-Basic Refresher",
+    "First Aid Only",
+    "Bloodborne Pathogens",
+    "Custom / Other",
+}
+
 class WaiverSubmission(BaseModel):
-    class_date: str
-    course_type: str
-    first_name: str
-    last_name: str
-    email_address: str
-    phone_number: str
-    signature_data: str  # base64 PNG
-    waiver_agreed: bool = True
+    class_date:     str
+    course_type:    str
+    first_name:     str
+    last_name:      str
+    email_address:  str
+    phone_number:   str
+    signature_data: str
+    waiver_agreed:  bool = True
+
+    @field_validator("class_date")
+    @classmethod
+    def validate_date(cls, v):
+        if not re.match(r"^\d{4}-\d{2}-\d{2}$", v):
+            raise ValueError("class_date must be YYYY-MM-DD")
+        return v
+
+    @field_validator("course_type")
+    @classmethod
+    def validate_course(cls, v):
+        if v not in VALID_COURSES:
+            raise ValueError(f"Invalid course_type: {v}")
+        return v
+
+    @field_validator("first_name", "last_name")
+    @classmethod
+    def validate_name(cls, v):
+        v = bleach.clean(v.strip(), tags=[], strip=True)
+        if not v or len(v) > 50:
+            raise ValueError("Name must be 1-50 characters")
+        if not re.match(r"^[A-Za-z\s'\-\.]+$", v):
+            raise ValueError("Name contains invalid characters")
+        return v
+
+    @field_validator("email_address")
+    @classmethod
+    def validate_email(cls, v):
+        v = bleach.clean(v.strip(), tags=[], strip=True)
+        if len(v) > 100:
+            raise ValueError("Email too long")
+        return v
+
+    @field_validator("phone_number")
+    @classmethod
+    def validate_phone(cls, v):
+        v = bleach.clean(v.strip(), tags=[], strip=True)
+        if len(v) > 20:
+            raise ValueError("Phone too long")
+        return v
+
+    @field_validator("signature_data")
+    @classmethod
+    def validate_signature(cls, v):
+        if not v.startswith("data:image"):
+            raise ValueError("signature_data must be a base64 image")
+        if len(v) > 500_000:
+            raise ValueError("Signature image too large (max 500KB)")
+        return v
 
 
 class RosterRequest(BaseModel):
@@ -122,7 +215,8 @@ def health_check():
 
 
 @app.post("/submit-waiver")
-def submit_waiver(body: WaiverSubmission):
+@limiter.limit("10/minute")
+def submit_waiver(request: Request, body: WaiverSubmission):
     """Insert a student waiver into student_intake table."""
     conn = sqlite3.connect(DB_PATH)
     # Duplicate check
@@ -172,7 +266,7 @@ def get_intake_roster(class_date: str, course_type: str):
 
 
 @app.post("/generate-roster")
-def generate_roster(body: RosterRequest):
+def generate_roster(body: RosterRequest, _: str = Depends(require_api_key)):
     """Generate PDF roster and return as file download."""
     pdf_path = generate_roster_pdf(
         class_date=body.class_date,

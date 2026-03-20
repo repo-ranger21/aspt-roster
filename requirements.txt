@@ -15,3 +15,5 @@ reportlab
 qrcode[pil]
 pillow
 pymupdf
+slowapi
+bleach
