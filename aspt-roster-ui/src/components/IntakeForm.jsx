@@ -204,35 +204,32 @@ export default function IntakeForm() {
           >
             {WAIVER}
           </div>
-          <label className="flex items-start gap-3 cursor-pointer">
-            <div className="relative mt-0.5 flex-shrink-0">
-              <input
-                type="checkbox" id="agreed" className="sr-only"
-                checked={agreed}
-                onChange={(e) => {
-                  setAgreed(e.target.checked);
-                  setErrors((er) => ({ ...er, agreed: '' }));
-                }}
-              />
-              <div
-                onClick={() => {
-                  setAgreed(a => !a);
-                  setErrors((er) => ({ ...er, agreed: '' }));
-                }}
-                className="w-5 h-5 rounded flex items-center justify-center cursor-pointer transition-all duration-200"
-                style={{
-                  border: `2px solid ${agreed ? '#0D1F3C' : '#D1D9E6'}`,
-                  background: agreed ? '#0D1F3C' : '#fff',
-                }}
-              >
-                {agreed && (
-                  <svg width="11" height="9" viewBox="0 0 11 9" fill="none">
-                    <path d="M1 4l3 3 6-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                )}
-              </div>
-            </div>
-            <span className="text-sm leading-snug" style={{ color: errors.agreed ? '#C8102E' : '#445' }}>
+          <label 
+            htmlFor="waiver-checkbox"
+            className="flex items-start gap-3 cursor-pointer mt-2"
+          >
+            <input
+              type="checkbox"
+              id="waiver-checkbox"
+              checked={agreed}
+              onChange={(e) => {
+                setAgreed(e.target.checked);
+                setErrors((er) => ({ ...er, agreed: '' }));
+              }}
+              style={{
+                width: 22,
+                height: 22,
+                minWidth: 22,
+                marginTop: 2,
+                accentColor: '#0D1F3C',
+                cursor: 'pointer',
+                flexShrink: 0,
+              }}
+            />
+            <span 
+              className="text-sm leading-snug"
+              style={{ color: errors.agreed ? '#C8102E' : '#445' }}
+            >
               I have read and agree to the Liability Waiver and Release above. *
             </span>
           </label>
