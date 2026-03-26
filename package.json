@@ -1,0 +1,24 @@
+{
+  "name": "aspt-roster",
+  "version": "1.0.0",
+  "description": "**American Safety Programs & Training Inc.**   AHA Authorized Training Center — Rhode Island",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/repo-ranger21/aspt-roster.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/repo-ranger21/aspt-roster/issues"
+  },
+  "homepage": "https://github.com/repo-ranger21/aspt-roster#readme",
+  "dependencies": {
+    "qrcode.react": "^4.2.0"
+  }
+}

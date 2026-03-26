@@ -1,18 +1,6 @@
-// QRDisplay.jsx
-// Shows the QR code for the active session.
-// Used as a tab inside Dashboard.
 
-const COURSES = [
-  'BLS for Healthcare Providers',
-  'Heartsaver CPR AED',
-  'Heartsaver First Aid CPR AED',
-  'ACLS',
-  'PALS',
-  'EMT-Basic Refresher',
-  'First Aid Only',
-  'Bloodborne Pathogens',
-  'Custom / Other',
-];
+import { useEffect, useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 
 function formatDate(iso) {
   try {
@@ -23,6 +11,9 @@ function formatDate(iso) {
 }
 
 export default function QRDisplay({ session }) {
+  const [qrPngUrl, setQrPngUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   if (!session) return null;
 
   // In dev: Vite proxy rewrites /api → localhost:8000, so the intake URL
@@ -30,6 +21,33 @@ export default function QRDisplay({ session }) {
   const intakeUrl = `${window.location.origin}/intake?` +
     new URLSearchParams({ course: session.course, date: session.date });
 
+  // Try to fetch the backend-generated PNG
+  useEffect(() => {
+    setLoading(true);
+    const params = new URLSearchParams({
+      course_type: session.course,
+      class_date: session.date,
+      instructor: session.instructor || ''
+    });
+    fetch(`/api/qr-png?${params}`)
+      .then(res => {
+        if (!res.ok) throw new Error('No PNG');
+        return res.blob();
+      })
+      .then(blob => {
+        setQrPngUrl(URL.createObjectURL(blob));
+        setLoading(false);
+      })
+      .catch(() => {
+        setQrPngUrl(null);
+        setLoading(false);
+      });
+    // Cleanup
+    return () => {
+      if (qrPngUrl) URL.revokeObjectURL(qrPngUrl);
+    };
+    // eslint-disable-next-line
+  }, [session.course, session.date, session.instructor]);
 
   return (
     <div className="max-w-lg">
@@ -55,6 +73,11 @@ export default function QRDisplay({ session }) {
         {/* QR image */}
         <div className="flex justify-center py-8 bg-slate">
           <div className="bg-white rounded-2xl p-4 shadow-inner border border-border inline-block">
+            {loading ? (
+              <div style={{ width: 240, height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#AAB' }}>Loading…</div>
+            ) : qrPngUrl ? (
+              <img src={qrPngUrl} alt="QR PNG" width={240} height={240} style={{ display: 'block' }} />
+            ) : (
               <QRCodeSVG
                 value={intakeUrl}
                 size={240}
@@ -62,6 +85,7 @@ export default function QRDisplay({ session }) {
                 bgColor="#F4F6FA"
                 level="H"
               />
+            )}
           </div>
         </div>
 
