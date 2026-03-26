@@ -26,5 +26,4 @@ dist/
 
 # Workspace and root package files
 aspt-roster.code-workspace
-package-lock.json
 

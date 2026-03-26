@@ -22,6 +22,7 @@ export default function QRDisplay({ session }) {
     new URLSearchParams({ course: session.course, date: session.date });
 
   // Try to fetch the backend-generated PNG
+
   useEffect(() => {
     setLoading(true);
     const params = new URLSearchParams({
@@ -29,7 +30,12 @@ export default function QRDisplay({ session }) {
       class_date: session.date,
       instructor: session.instructor || ''
     });
-    fetch(`/api/qr-png?${params}`)
+    // Use the correct backend URL depending on environment
+    const isProd = window.location.hostname.endsWith('pages.dev');
+    const backendBase = isProd
+      ? 'https://aspt-roster.onrender.com' // <-- CHANGE THIS if your backend URL is different
+      : '/api';
+    fetch(`${backendBase}/qr-png?${params}`)
       .then(res => {
         if (!res.ok) throw new Error('No PNG');
         return res.blob();

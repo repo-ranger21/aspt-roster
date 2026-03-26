@@ -11,25 +11,6 @@ from pydantic import field_validator
 from fastapi.responses import FileResponse, Response
 from pathlib import Path
 from generate_qr import generate_qr
-from generate_qr import generate_qr
-# ── Serve QR PNG ─────────────────────────────────────────────────────────
-from pathlib import Path
-
-@app.get("/qr-png")
-def get_qr_png(course_type: str, class_date: str, instructor: str = ""):
-    """
-    Returns the branded QR PNG for a class session, generating it if needed.
-    URL params: course_type, class_date, instructor (optional)
-    """
-    # Generate the PNG if it doesn't exist
-    out_path = generate_qr(course_type, class_date, instructor)
-    if not Path(out_path).exists():
-        return Response(status_code=404)
-    return FileResponse(
-        str(out_path),
-        media_type="image/png",
-        filename=Path(out_path).name
-    )
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional
@@ -39,13 +20,13 @@ from models import init_db, DB_PATH
 from generate_roster import generate_roster_pdf
 
 
+
 app = FastAPI(title="ASPT Roster API")
 
 # ── Rate limiting ──────────────────────────────────────────────────
 limiter = Limiter(key_func=get_remote_address, default_limits=["200/day"])
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
-
 
 # ── Serve QR PNG ─────────────────────────────────────────────────────────
 @app.get("/qr-png")
