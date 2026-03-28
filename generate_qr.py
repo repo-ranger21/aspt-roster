@@ -9,14 +9,36 @@
 # Output: qr_codes/ASPT_QR_2026-03-15_BLS.png  (print and tape to the door)
 
 import argparse
+import io
+import os
 import qrcode
-from qrcode.image.styledpil import StyledPilImage
-from qrcode.image.styles.moduledrawers import RoundedModuleDrawer
-from qrcode.image.styles.colormasks import SolidFillColorMask
-from PIL import Image, ImageDraw, ImageFont
-from pathlib import Path
-from datetime import date
-from urllib.parse import urlencode, quote_plus
+from flask import Flask, send_file, request, abort
+
+app = Flask(__name__)
+
+FRONTEND_URL = "https://aspt-roster.pages.dev/intake"
+
+@app.route("/api/qr")
+def qr():
+    course = request.args.get("course")
+    date = request.args.get("date")
+    instructor = request.args.get("instructor")
+    if not course or not date or not instructor:
+        abort(400, "Missing required parameters")
+    url = f"{FRONTEND_URL}?course={course}&date={date}&instructor={instructor}"
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_H,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="#0D1F3C", back_color="#F4F6FA")
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    return send_file(buf, mimetype="image/png")
 
 # ── Config ────────────────────────────────────────────────────────────────
 
